@@ -4,10 +4,15 @@ import axios from 'axios';
 import InputEdades from './InputEdades';
 import Resultado from './Resultado';
 
+
+
+
+
 function FormCompra() {
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
   const [resultado, setResultado] = useState('');
   const cantidad = watch('cantidad', 1);
+
 
   const onSubmit = async (data) => {
     try {
