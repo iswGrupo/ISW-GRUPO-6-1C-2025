@@ -1,9 +1,9 @@
 function Resultado({ mensaje }) {
-    return (
-      <p className={`mt-4 text-center text-sm ${mensaje.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
-        {mensaje}
-      </p>
-    );
-  }
-  
-  export default Resultado;
+  return mensaje ? (
+    <div className="mt-6 p-4 rounded bg-gray-100 text-center font-semibold text-lg">
+      {mensaje}
+    </div>
+  ) : null;
+}
+
+export default Resultado;

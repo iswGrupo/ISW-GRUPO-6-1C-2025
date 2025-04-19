@@ -1,4 +1,84 @@
-
+@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.compra{
+    font-family: "Albert Sans", sans-serif;
+}
+.react-calendar {
+    border: none;
+    width: 100%;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin: 1.5rem 0; 
+    font-family: inherit;
+  }
+  
+  
+  .react-calendar__tile {
+    border-radius: 0.5rem;
+    padding: 0.5rem 0;
+  }
+  
+  .react-calendar__tile--now {
+    background: #3263cc !important;
+    color: white !important;
+  }
+  
+  .react-calendar__tile--active {
+    background: #2563eb !important;
+    color: white !important;
+  }
+  
+  .react-calendar__tile--hover {
+    background: #e0e7ff !important;
+  }
+  
+  .boton1{
+    background-color: #10ac84; 
+  }
+
+/* Navbar */
+.navbar {
+    background-color: #A8D5BA; 
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Albert Sans', sans-serif;
+  }
+  
+  .navbar-brand h1 {
+    color: #10ac84;
+    font-size: 1.5rem;
+    margin: 0;
+    padding-left: 0.5rem;
+  }
+  
+  .navbar-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  .navbar-links li {
+    margin: 0;
+  }
+  
+  .navbar-links a {
+    color: #6C9D76;
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
+  }
+  
+  .navbar-links a:hover {
+    background-color: #ace7f1;
+    padding: 10px;
+    border-radius: 10px;
+  }
+  
+  
