@@ -41,7 +41,7 @@
     background-color: #10ac84; 
   }
 
-/* Navbar */
+/* Estilos para el NavBar */
 .navbar {
     background-color: #A8D5BA; 
     padding: 1rem;
@@ -76,9 +76,7 @@
   }
   
   .navbar-links a:hover {
-    background-color: #ace7f1;
-    padding: 10px;
-    border-radius: 10px;
+    color: #F1D6AC;
   }
   
   

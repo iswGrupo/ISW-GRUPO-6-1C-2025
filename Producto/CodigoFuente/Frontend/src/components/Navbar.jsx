@@ -1,7 +1,5 @@
 import React from 'react';
-import logo from '../imgs/LOGO.png';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleUser } from '@fortawesome/free-solid-svg-icons'; // <- este es el correcto
+import logo from '../imgs/LOGO.png'
 
 const NavBar = () => {
   return (
@@ -15,12 +13,8 @@ const NavBar = () => {
         <h1>EcoHarmony Park</h1>
       </div>
       <ul className="navbar-links">
-        <li><a href="/">Comprar Entrada</a></li>
-        <li className="pl-2 pr-2">
-          <a href="#profile">
-            <FontAwesomeIcon icon={faCircleUser} size="lg" />
-          </a>
-        </li>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
       </ul>
     </nav>
   );
