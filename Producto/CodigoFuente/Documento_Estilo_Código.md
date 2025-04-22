@@ -57,12 +57,12 @@ Este documento establece ciertas normas y convenciones de buenas prácticas y es
 ## Formato y espaciado 
 - Mantener una indentación consistente. 
 - JavaScript: 
-	○ Usar punto y coma (;) al final de cada declaración. 
-	○ Usar comillas simples (') para cadenas de texto. 
+ ○ Usar punto y coma (;) al final de cada declaración. 
+ ○ Usar comillas simples (') para cadenas de texto. 
 - CSS: 
-	○ Mantener una línea en blanco entre reglas de estilo. 
+ ○ Mantener una línea en blanco entre reglas de estilo. 
 - HTML: 
-	○ Asegurarse de cerrar correctamente las etiquetas.
+ ○ Asegurarse de cerrar correctamente las etiquetas.
 
 ## Comentarios 
 - Utilizar comentarios para explicar el propósito y funcionamiento del código cuando sea necesario aclararlo
@@ -70,9 +70,9 @@ Este documento establece ciertas normas y convenciones de buenas prácticas y es
 ## Buenas prácticas con JavaScript:
 - Aplicar principio del buen diseño DRY (Don't Repeat Yourself), no "copiar y pegar" código
 - Usar const por sobre let siempre que se pueda. 
-	○ const para valores constantes. 
-	○ let para variables que pueden cambiar. 
-	○ Evitar el uso de var. 
+  ○ const para valores constantes. 
+  ○ let para variables que pueden cambiar. 
+  ○ Evitar el uso de var. 
 - Uso de arrow functions si es posible para mantener el código más claro y conciso.
 
 ## Buenas prácticas con HTML: 
