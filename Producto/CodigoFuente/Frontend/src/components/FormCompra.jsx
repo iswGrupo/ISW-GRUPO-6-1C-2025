@@ -9,6 +9,7 @@ function FormCompra() {
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
   const [resultado, setResultado] = useState('');
   const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
+  const [alertaCantidad, setAlertaCantidad] = useState('');
 
   const cantidad = parseInt(watch('cantidad')) || 0;
 
@@ -54,6 +55,10 @@ function FormCompra() {
             value={fechaSeleccionada}
             className="rounded-lg shadow-sm w-full"
             minDate={new Date()}
+            tileDisabled={({ date }) => {
+              const day = date.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+              return day === 2 || day === 4; // 2=Martes, 4=Jueves
+            }}
           />
           {errors.fecha && <p className="text-red-600 text-sm">{errors.fecha.message}</p>}
         </div>
@@ -72,8 +77,21 @@ function FormCompra() {
                 min: { value: 1, message: 'Mínimo 1 entrada' },
                 max: { value: 10, message: 'Máximo 10 entradas' },
               })}
+              onInput={(e) => {
+                const value = parseInt(e.target.value);
+                if (value > 10) {
+                  e.target.value = 10;
+                  setAlertaCantidad('Máximo permitido: 10 entradas');
+                } else if (value < 1) {
+                  e.target.value = 1;
+                  setAlertaCantidad('Mínimo permitido: 1 entrada');
+                } else {
+                  setAlertaCantidad('');
+                }
+              }}
               className="w-full border rounded px-3 py-2"
             />
+            {alertaCantidad && <p className="text-yellow-600 text-sm">{alertaCantidad}</p>}
             {errors.cantidad && <p className="text-red-600 text-sm">{errors.cantidad.message}</p>}
           </div>
 

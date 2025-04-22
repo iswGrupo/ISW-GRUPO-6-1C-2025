@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^1.6.8",
     "date-fns": "^4.1.0",
+    "eco-harmony-park": "file:",
     "react": "^18.2.0",
     "react-calendar": "^5.1.0",
     "react-datepicker": "^8.3.0",

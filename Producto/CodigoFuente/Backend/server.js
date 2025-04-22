@@ -15,8 +15,9 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-const diasAbiertos = [1, 2, 3, 4, 5, 6];
-let usuarioLogueado = { email: 'castillokev.abel@gmail.com', nombre: 'Juan Pérez' };
+const diasAbiertos = [0, 1, 3, 5, 6]; 
+
+let usuarioLogueado = { email: 'iswgrupo@gmail.com', nombre: 'Juan Pérez' };
 const comprasTemporales = new Map();
 
 const client = new MercadoPagoConfig({
@@ -56,26 +57,28 @@ app.post('/api/comprar', async (req, res) => {
     return res.status(400).json({ mensaje: 'Seleccione forma de pago.' });
   }
 
+  const compraId = uuidv4(); // Generar compraId
+
+  // Guardar la compra en la variable temporal
+  comprasTemporales.set(compraId, {
+    fecha: fechaVisita,
+    cantidad: cantidadNumerica,
+    pases,
+    edades,
+    email: usuarioLogueado.email,
+    nombre: usuarioLogueado.nombre,
+    compraId: compraId,
+  });
+
   if (formaPago === 'tarjeta') {
     try {
-      const compraId = uuidv4();
-      comprasTemporales.set(compraId, {
-        fecha: fechaVisita,
-        cantidad: cantidadNumerica,
-        pases,
-        edades,
-        email: usuarioLogueado.email,
-        nombre: usuarioLogueado.nombre,
-        compraId: compraId, // Agrega el compraId aquí
-      });
-  
       const preference = new Preference(client);
       const items = pases.map((pase) => ({
         title: `Entrada al parque (${pase.toUpperCase()})`,
         quantity: 1,
         unit_price: pase === 'vip' ? 1500 : 1000,
       }));
-  
+
       const result = await preference.create({
         body: {
           items,
@@ -88,16 +91,18 @@ app.post('/api/comprar', async (req, res) => {
           payer: { email: usuarioLogueado.email },
         },
       });
-  
+
+      // Después de crear la preferencia, devolver la URL para que el usuario pague
       return res.json({ redireccion: true, url: result.init_point });
     } catch (err) {
       console.error('Error creando preferencia:', err);
       return res.status(500).json({ mensaje: 'Error al crear la preferencia de pago.' });
     }
   }
+
   if (formaPago === 'efectivo') {
     try {
-      const compraId = uuidv4(); // Genera un compraId para pagos en efectivo
+      // Si el pago es en efectivo, enviar el correo con el QR
       await enviarCorreoGmail(
         usuarioLogueado.email,
         '🎟️ ¡Gracias por tu compra!',
@@ -106,8 +111,9 @@ app.post('/api/comprar', async (req, res) => {
           fecha: fechaVisita,
           cantidad: cantidadNumerica,
           pases,
-          compraId: compraId, // Agrega el compraId aquí
-        }
+          compraId: compraId,
+        },
+        'efectivo'
       );
       res.json({ mensaje: `Compra realizada para el ${fecha} - ${cantidadNumerica} entradas.` });
     } catch (err) {
@@ -128,10 +134,12 @@ app.get('/success', async (req, res) => {
         return res.send('<h1>⚠️ Compra no encontrada.</h1>');
       }
 
+      // Enviar el correo solo si el pago fue aprobado
       await enviarCorreoGmail(
         datosCompra.email, // usuario1@gmail.com
         '🎟️ ¡Gracias por tu compra!',
-        datosCompra
+        datosCompra,
+        'tarjeta' // Aseguramos que el QR sea enviado en este caso
       );
 
       comprasTemporales.delete(compraId);
