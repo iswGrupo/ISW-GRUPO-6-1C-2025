@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import Resultado from './Resultado';
@@ -13,6 +13,30 @@ function FormCompra() {
 
   const cantidad = parseInt(watch('cantidad')) || 0;
 
+  // ✅ Efecto para detectar redirección desde Mercado Pago
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const compraId = queryParams.get('compraId');
+    
+    if (compraId) {
+      axios.get(`http://localhost:3000/api/compra/${compraId}`)
+        .then((response) => {
+          const datosCompra = response.data;
+          const fechaFormateada = new Date(datosCompra.fecha).toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+          
+          setResultado(`Compra realizada para el ${fechaFormateada} - ${datosCompra.cantidad} entradas. (Tus entradas han sido enviadas a tu direccion de mail)`);
+        })
+        .catch((error) => {
+          console.error('Error al obtener la compra:', error);
+          setResultado('Error al recuperar la compra.');
+        });
+    }
+  }, []);
+
   const handleFechaChange = (date) => {
     if (date >= new Date()) {
       setFechaSeleccionada(date);
@@ -25,19 +49,23 @@ function FormCompra() {
       const pases = Array.from({ length: data.cantidad }, (_, i) => data[`pase-${i + 1}`]);
 
       const payload = {
-        ...data,
         fecha: fechaSeleccionada,
+        cantidad: data.cantidad,
         edades,
         pases,
+        formaPago: data.formaPago,
       };
 
       const res = await axios.post('http://localhost:3000/api/comprar', payload);
-      if (res.data.redireccion) {
+
+      if (res.data.url) {
+        localStorage.setItem('compraEnProceso', 'true');
         window.location.href = res.data.url;
       } else {
         setResultado(res.data.mensaje);
       }
     } catch (err) {
+      console.error(err);
       setResultado('Error en la compra.');
     }
   };
@@ -56,16 +84,18 @@ function FormCompra() {
             className="rounded-lg shadow-sm w-full"
             minDate={new Date()}
             tileDisabled={({ date }) => {
-              const day = date.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
-              return day === 2 || day === 4; // 2=Martes, 4=Jueves
+              const day = date.getDay();
+              return day === 2 || day === 4; // Deshabilitar martes y jueves
             }}
           />
-          {errors.fecha && <p className="text-red-600 text-sm">{errors.fecha.message}</p>}
+          {/* Mensaje fijo debajo del calendario */}
+          <p className="text-sm text-gray-600 mt-2">
+            El parque está cerrado los días martes y jueves. No puedes comprar entradas para esos días.
+          </p>
         </div>
 
-        {/* Columna 2: Resto del formulario */}
+        {/* Columna 2: Formulario */}
         <div className="space-y-4">
-          {/* Cantidad */}
           <div>
             <label className="font-semibold block mb-1">Cantidad de entradas:</label>
             <input
@@ -95,10 +125,8 @@ function FormCompra() {
             {errors.cantidad && <p className="text-red-600 text-sm">{errors.cantidad.message}</p>}
           </div>
 
-          {/* Edades y pases */}
           {Array.from({ length: cantidad }).map((_, i) => (
             <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Edad */}
               <div>
                 <label className="block font-semibold mb-1">Edad del visitante {i + 1}:</label>
                 <input
@@ -117,7 +145,6 @@ function FormCompra() {
                 )}
               </div>
 
-              {/* Pase */}
               <div>
                 <label className="block font-semibold mb-1">Tipo de pase:</label>
                 <select
@@ -134,7 +161,6 @@ function FormCompra() {
             </div>
           ))}
 
-          {/* Forma de pago */}
           <div>
             <label className="block font-semibold mb-1">Forma de pago:</label>
             <select
@@ -148,7 +174,6 @@ function FormCompra() {
             {errors.formaPago && <p className="text-red-600 text-sm">{errors.formaPago.message}</p>}
           </div>
 
-          {/* Botón */}
           <button
             type="submit"
             className="boton1 w-full bg-blue-600 text-white font-semibold py-2 rounded"

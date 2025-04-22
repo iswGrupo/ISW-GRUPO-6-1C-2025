@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const { enviarCorreoGmail } = require('./sendMails.js'); // Cambia a enviarCorreoGmail
+const { enviarCorreoGmail } = require('./sendMails.js');
 const { MercadoPagoConfig, Preference } = require('mercadopago');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
@@ -57,9 +57,8 @@ app.post('/api/comprar', async (req, res) => {
     return res.status(400).json({ mensaje: 'Seleccione forma de pago.' });
   }
 
-  const compraId = uuidv4(); // Generar compraId
+  const compraId = uuidv4();
 
-  // Guardar la compra en la variable temporal
   comprasTemporales.set(compraId, {
     fecha: fechaVisita,
     cantidad: cantidadNumerica,
@@ -92,7 +91,6 @@ app.post('/api/comprar', async (req, res) => {
         },
       });
 
-      // Después de crear la preferencia, devolver la URL para que el usuario pague
       return res.json({ redireccion: true, url: result.init_point });
     } catch (err) {
       console.error('Error creando preferencia:', err);
@@ -102,7 +100,7 @@ app.post('/api/comprar', async (req, res) => {
 
   if (formaPago === 'efectivo') {
     try {
-      // Si el pago es en efectivo, enviar el correo con el QR
+      // Enviar el correo con los detalles de la compra
       await enviarCorreoGmail(
         usuarioLogueado.email,
         '🎟️ ¡Gracias por tu compra!',
@@ -115,13 +113,28 @@ app.post('/api/comprar', async (req, res) => {
         },
         'efectivo'
       );
-      res.json({ mensaje: `Compra realizada para el ${fecha} - ${cantidadNumerica} entradas.` });
+
+      // Formatear la fecha y respuesta
+      const fechaFormateada = fechaVisita.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
+      // Responder con un objeto estructurado
+      return res.json({
+        mensaje: `Debes realizar el pago de la/s entrada/s en efectivo (revisa tu direccion de mail). Para el ${fechaFormateada} - ${cantidadNumerica} entradas.`,
+        compraId: compraId,
+        fecha: fechaFormateada,  // Devolvemos la fecha formateada
+        cantidad: cantidadNumerica,  // Devolvemos la cantidad de entradas
+      });
     } catch (err) {
       console.error('Error enviando correo:', err);
-      res.status(500).json({ mensaje: 'Compra realizada, pero hubo un error al enviar el correo.' });
+      return res.status(500).json({ mensaje: 'Compra realizada, pero hubo un error al enviar el correo.' });
     }
   }
 });
+
 
 app.get('/success', async (req, res) => {
   const { status, compraId } = req.query;
@@ -134,16 +147,15 @@ app.get('/success', async (req, res) => {
         return res.send('<h1>⚠️ Compra no encontrada.</h1>');
       }
 
-      // Enviar el correo solo si el pago fue aprobado
       await enviarCorreoGmail(
-        datosCompra.email, // usuario1@gmail.com
+        datosCompra.email,
         '🎟️ ¡Gracias por tu compra!',
         datosCompra,
-        'tarjeta' // Aseguramos que el QR sea enviado en este caso
+        'tarjeta'
       );
 
-      comprasTemporales.delete(compraId);
-      res.redirect('http://localhost:5173/?confirmado=true');
+      // Redirigir incluyendo el compraId para que el frontend lo use
+      res.redirect(`http://localhost:5173/?confirmado=true&compraId=${compraId}`);
     } catch (err) {
       console.error('Error al enviar el correo:', err);
       res.send('<h1>✅ Pago aprobado, pero hubo un problema al enviar el correo.</h1>');
@@ -151,6 +163,19 @@ app.get('/success', async (req, res) => {
   } else {
     res.send('<h1>⚠️ No se pudo confirmar el estado del pago.</h1>');
   }
+});
+
+
+// Nuevo endpoint para obtener los datos de la compra
+app.get('/api/compra/:compraId', (req, res) => {
+  const { compraId } = req.params;
+  const datosCompra = comprasTemporales.get(compraId);
+
+  if (!datosCompra) {
+    return res.status(404).json({ mensaje: 'Compra no encontrada' });
+  }
+
+  res.json(datosCompra);
 });
 
 app.listen(PORT, () => {
