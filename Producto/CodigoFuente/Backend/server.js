@@ -71,13 +71,24 @@ app.post('/api/comprar', async (req, res) => {
 
   if (formaPago === 'tarjeta') {
     try {
+      const compraId = uuidv4();
+      comprasTemporales.set(compraId, {
+        fecha: fechaVisita,
+        cantidad: cantidadNumerica,
+        pases,
+        edades,
+        email: usuarioLogueado.email,
+        nombre: usuarioLogueado.nombre,
+        compraId: compraId,
+      });
+  
       const preference = new Preference(client);
       const items = pases.map((pase) => ({
         title: `Entrada al parque (${pase.toUpperCase()})`,
         quantity: 1,
         unit_price: pase === 'vip' ? 1500 : 1000,
       }));
-
+  
       const result = await preference.create({
         body: {
           items,
@@ -88,9 +99,24 @@ app.post('/api/comprar', async (req, res) => {
           },
           auto_return: 'approved',
           payer: { email: usuarioLogueado.email },
+          default_payment_method_id: 'credit_card',
+          payment_methods: {
+            excluded_payment_types: [
+              { id: 'debit_card' }, // Excluye tarjeta de débito
+              // { id: 'account_money' }, // Excluye dinero en cuenta de Mercado Pago
+              { id: 'ticket' }, // Excluye pagos en efectivo (ej. boleto, Rapipago)
+              { id: 'bank_transfer' }, // Excluye transferencias bancarias
+              { id: 'atm' }, // Excluye pagos en cajeros automáticos
+              { id: 'prepaid_card' }, // Excluye tarjetas prepagas
+            ],
+            // Opcional: especificar que solo se acepten tarjetas de crédito
+            
+            // Opcional: limitar el número de cuotas (ejemplo: máximo 12 cuotas)
+            installments: 12,
+          },
         },
       });
-
+  
       return res.json({ redireccion: true, url: result.init_point });
     } catch (err) {
       console.error('Error creando preferencia:', err);

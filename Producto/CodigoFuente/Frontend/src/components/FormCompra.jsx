@@ -1,23 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
-import Resultado from './Resultado';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import ModalCompra from './ModalCompra'; // Importar el nuevo componente
 
 function FormCompra() {
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
-  const [resultado, setResultado] = useState('');
+  const [modalData, setModalData] = useState(null); // Reemplazar resultado por modalData
   const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
   const [alertaCantidad, setAlertaCantidad] = useState('');
 
   const cantidad = parseInt(watch('cantidad')) || 0;
 
-  // ✅ Efecto para detectar redirección desde Mercado Pago
+  // Suponemos que tienes acceso al nombre del usuario (puedes ajustarlo según tu lógica de autenticación)
+  const usuario = { nombre: 'Juan Pérez' }; // Esto debería venir de un contexto o estado global en una app real
+
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const compraId = queryParams.get('compraId');
-    
+
     if (compraId) {
       axios.get(`http://localhost:3000/api/compra/${compraId}`)
         .then((response) => {
@@ -27,12 +29,21 @@ function FormCompra() {
             month: 'long',
             day: 'numeric',
           });
-          
-          setResultado(`Compra realizada para el ${fechaFormateada} - ${datosCompra.cantidad} entradas. (Tus entradas han sido enviadas a tu direccion de mail)`);
+
+          setModalData({
+            tipo: 'tarjeta',
+            detalles: {
+              ...datosCompra,
+              fecha: fechaFormateada,
+            },
+          });
         })
         .catch((error) => {
           console.error('Error al obtener la compra:', error);
-          setResultado('Error al recuperar la compra.');
+          setModalData({
+            tipo: 'error',
+            detalles: { mensaje: 'Error al recuperar la compra.' },
+          });
         });
     }
   }, []);
@@ -62,11 +73,29 @@ function FormCompra() {
         localStorage.setItem('compraEnProceso', 'true');
         window.location.href = res.data.url;
       } else {
-        setResultado(res.data.mensaje);
+        // Pago en efectivo
+        const fechaFormateada = new Date(res.data.fecha).toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+        setModalData({
+          tipo: 'efectivo',
+          detalles: {
+            nombre: usuario.nombre,
+            fecha: fechaFormateada,
+            cantidad: res.data.cantidad,
+            pases,
+            compraId: res.data.compraId,
+          },
+        });
       }
     } catch (err) {
       console.error(err);
-      setResultado('Error en la compra.');
+      setModalData({
+        tipo: 'error',
+        detalles: { mensaje: 'Error en la compra.' },
+      });
     }
   };
 
@@ -74,7 +103,6 @@ function FormCompra() {
     <div className="compra w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-6">
       <h1 className="text-2xl font-bold mb-6 text-center">Comprar Entradas</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
         {/* Columna 1: Fecha y Calendario */}
         <div>
           <label className="block font-semibold mb-2">Fecha de visita:</label>
@@ -85,10 +113,9 @@ function FormCompra() {
             minDate={new Date()}
             tileDisabled={({ date }) => {
               const day = date.getDay();
-              return day === 2 || day === 4; // Deshabilitar martes y jueves
+              return day === 2 || day === 4;
             }}
           />
-          {/* Mensaje fijo debajo del calendario */}
           <p className="text-sm text-gray-600 mt-2">
             El parque está cerrado los días martes y jueves. No puedes comprar entradas para esos días.
           </p>
@@ -136,7 +163,7 @@ function FormCompra() {
                   {...register(`edad-${i + 1}`, {
                     required: 'La edad es obligatoria',
                     min: { value: 0, message: 'Edad no válida' },
-                    max: { value: 120, message: 'Edad no válida' }
+                    max: { value: 120, message: 'Edad no válida' },
                   })}
                   className="w-full border rounded px-3 py-2"
                 />
@@ -183,7 +210,8 @@ function FormCompra() {
         </div>
       </form>
 
-      <Resultado mensaje={resultado} />
+      {/* Renderizar el modal */}
+      <ModalCompra modalData={modalData} onClose={() => setModalData(null)} />
     </div>
   );
 }
