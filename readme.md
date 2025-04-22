@@ -81,8 +81,15 @@ A continuación, se presentan las reglas de nombrado para los ítems de configur
 | RNF                     | Requerimientos No Funcionales                        |
 | Pb                      | Product Backlog                                      |
 | .py                     | Extensión de archivo de Python                       |
+| .js                     | Extensión de archivo de JavaScript                   |
+| .jsx                    | Extensión de archivo de JavaScript XML               |
+| .json                   | Extensión de archivo de JavaScript Object Notation   |
 | .docx                   | Extensión de archivo de Word                         |
+| .png                    | Extensión de archivo de imagen                       |
 | .txt                    | Extensión de archivo de texto editable               |
+| .md                     | Extensión de archivo de Markdown, de texto editable  |
+| .cjs                    | Extensión de archivo de CommonJS                     |
+| .css                    | Extensión de archivo de Cascading Style Sheets       |
 | .sql                    | Extensión de archivo de base de datos SQL Server     |
 | .drawio                 | Extensión de archivo de los diagramas                |
 | .calendar               | Extensión de archivo de calendario                   |
