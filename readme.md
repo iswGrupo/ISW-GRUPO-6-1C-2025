@@ -15,9 +15,8 @@ El repositorio está dividido en dos carpetas principales: `Producto` y `Proyect
     - Eco_Pd_diagramaE_Funcionalidad.drawio  
   - **CodigoFuente/**  
     - **Backend/**  
-      - Eco_Pd_CF_BK_Servidor.py  
-      - Eco_Pd_CF_BK_BD.sql  
-    - **Frontend/**  
+    - **Frontend/**
+    - **Documento_Estilo_Codigo.pdf**  
   - **DiseñoInterfaz/**  
     - Eco_Pd_DI_InicioApp.drawio  
     - Eco_Pd_DI_Sesion.drawio  
@@ -90,9 +89,9 @@ A continuación, se presentan las reglas de nombrado para los ítems de configur
 | CR                      | Cronograma                                           |
 | TestU                   | Test Unitario                                        |
 | TestI                   | Test de Integración                                  |
-| <TipoDeVista>           | Corresponde al tipo de vista que representa el diagrama (por ejemplo: vista de funcionalidad) |
-| <TipoDeRequerimiento>   | Tipo de requerimiento representado en el archivo     |
-| <NombreDescriptivo>     | Nombre que describe la funcionalidad                 |
+| "<TipoDeVista>"         | Corresponde al tipo de vista que representa el diagrama (por ejemplo: vista de funcionalidad) |
+| "<TipoDeRequerimiento>" | Tipo de requerimiento representado en el archivo     |
+| "<NombreDescriptivo>"   | Nombre que describe la funcionalidad                 |
 | <NombreDeMétrica>       | Corresponde al tipo de métrica al que hace referencia (por ejemplo: Lead Time) |
 | <NumeroDeSprint>        | Número asociado al sprint realizado. Es un valor que crece a medida que se realizan sprints |
 | <TipoDeManual>          | Tipo de manual a describir                           |
