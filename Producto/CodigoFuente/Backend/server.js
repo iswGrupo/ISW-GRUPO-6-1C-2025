@@ -24,6 +24,13 @@ const client = new MercadoPagoConfig({
   accessToken: 'TEST-320555961029794-041718-65b747ee2fd431edefa094b63df8fe7e-188122401',
 });
 
+// Función para calcular el monto total
+const calcularMontoTotal = (pases) => {
+  return pases.reduce((total, pase) => {
+    return total + (pase === 'vip' ? 1500 : 1000);
+  }, 0);
+};
+
 app.post('/api/comprar', async (req, res) => {
   console.log('Datos recibidos:', req.body);
   const { fecha, cantidad, edades, pases, formaPago } = req.body;
@@ -58,6 +65,7 @@ app.post('/api/comprar', async (req, res) => {
   }
 
   const compraId = uuidv4();
+  const montoTotal = calcularMontoTotal(pases); // Calcular monto total
 
   comprasTemporales.set(compraId, {
     fecha: fechaVisita,
@@ -67,28 +75,18 @@ app.post('/api/comprar', async (req, res) => {
     email: usuarioLogueado.email,
     nombre: usuarioLogueado.nombre,
     compraId: compraId,
+    montoTotal, // Almacenar monto total
   });
 
   if (formaPago === 'tarjeta') {
     try {
-      const compraId = uuidv4();
-      comprasTemporales.set(compraId, {
-        fecha: fechaVisita,
-        cantidad: cantidadNumerica,
-        pases,
-        edades,
-        email: usuarioLogueado.email,
-        nombre: usuarioLogueado.nombre,
-        compraId: compraId,
-      });
-  
       const preference = new Preference(client);
       const items = pases.map((pase) => ({
         title: `Entrada al parque (${pase.toUpperCase()})`,
         quantity: 1,
         unit_price: pase === 'vip' ? 1500 : 1000,
       }));
-  
+
       const result = await preference.create({
         body: {
           items,
@@ -102,21 +100,17 @@ app.post('/api/comprar', async (req, res) => {
           default_payment_method_id: 'credit_card',
           payment_methods: {
             excluded_payment_types: [
-              { id: 'debit_card' }, // Excluye tarjeta de débito
-              // { id: 'account_money' }, // Excluye dinero en cuenta de Mercado Pago
-              { id: 'ticket' }, // Excluye pagos en efectivo (ej. boleto, Rapipago)
-              { id: 'bank_transfer' }, // Excluye transferencias bancarias
-              { id: 'atm' }, // Excluye pagos en cajeros automáticos
-              { id: 'prepaid_card' }, // Excluye tarjetas prepagas
+              { id: 'debit_card' },
+              { id: 'ticket' },
+              { id: 'bank_transfer' },
+              { id: 'atm' },
+              { id: 'prepaid_card' },
             ],
-            // Opcional: especificar que solo se acepten tarjetas de crédito
-            
-            // Opcional: limitar el número de cuotas (ejemplo: máximo 12 cuotas)
             installments: 12,
           },
         },
       });
-  
+
       return res.json({ redireccion: true, url: result.init_point });
     } catch (err) {
       console.error('Error creando preferencia:', err);
@@ -126,7 +120,6 @@ app.post('/api/comprar', async (req, res) => {
 
   if (formaPago === 'efectivo') {
     try {
-      // Enviar el correo con los detalles de la compra
       await enviarCorreoGmail(
         usuarioLogueado.email,
         '🎟️ ¡Gracias por tu compra!',
@@ -136,23 +129,23 @@ app.post('/api/comprar', async (req, res) => {
           cantidad: cantidadNumerica,
           pases,
           compraId: compraId,
+          montoTotal, // Pasar monto total al correo
         },
         'efectivo'
       );
 
-      // Formatear la fecha y respuesta
       const fechaFormateada = fechaVisita.toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
       });
 
-      // Responder con un objeto estructurado
       return res.json({
         mensaje: `Debes realizar el pago de la/s entrada/s en efectivo (revisa tu direccion de mail). Para el ${fechaFormateada} - ${cantidadNumerica} entradas.`,
         compraId: compraId,
-        fecha: fechaFormateada,  // Devolvemos la fecha formateada
-        cantidad: cantidadNumerica,  // Devolvemos la cantidad de entradas
+        fecha: fechaFormateada,
+        cantidad: cantidadNumerica,
+        montoTotal, // Devolver monto total
       });
     } catch (err) {
       console.error('Error enviando correo:', err);
@@ -160,7 +153,6 @@ app.post('/api/comprar', async (req, res) => {
     }
   }
 });
-
 
 app.get('/success', async (req, res) => {
   const { status, compraId } = req.query;
@@ -180,7 +172,6 @@ app.get('/success', async (req, res) => {
         'tarjeta'
       );
 
-      // Redirigir incluyendo el compraId para que el frontend lo use
       res.redirect(`http://localhost:5173/?confirmado=true&compraId=${compraId}`);
     } catch (err) {
       console.error('Error al enviar el correo:', err);
@@ -191,8 +182,6 @@ app.get('/success', async (req, res) => {
   }
 });
 
-
-// Nuevo endpoint para obtener los datos de la compra
 app.get('/api/compra/:compraId', (req, res) => {
   const { compraId } = req.params;
   const datosCompra = comprasTemporales.get(compraId);

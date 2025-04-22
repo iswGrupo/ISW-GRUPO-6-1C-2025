@@ -3,18 +3,20 @@ import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import ModalCompra from './ModalCompra'; // Importar el nuevo componente
+import ModalCompra from './ModalCompra';
 
 function FormCompra() {
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
-  const [modalData, setModalData] = useState(null); // Reemplazar resultado por modalData
+  const [modalData, setModalData] = useState(null);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
   const [alertaCantidad, setAlertaCantidad] = useState('');
+  const [errorFecha, setErrorFecha] = useState('');
 
   const cantidad = parseInt(watch('cantidad')) || 0;
+  const pases = Array.from({ length: cantidad }, (_, i) => watch(`pase-${i + 1}`) || 'regular');
+  const montoTotal = pases.reduce((total, pase) => total + (pase === 'vip' ? 1500 : 1000), 0);
 
-  // Suponemos que tienes acceso al nombre del usuario (puedes ajustarlo según tu lógica de autenticación)
-  const usuario = { nombre: 'Juan Pérez' }; // Esto debería venir de un contexto o estado global en una app real
+  const usuario = { nombre: 'Juan Pérez' };
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
@@ -51,10 +53,22 @@ function FormCompra() {
   const handleFechaChange = (date) => {
     if (date >= new Date()) {
       setFechaSeleccionada(date);
+      const day = date.getDay();
+      if (day === 2 || day === 4) {
+        setErrorFecha('Seleccione una fecha válida. El parque está cerrado los martes y jueves.');
+      } else {
+        setErrorFecha('');
+      }
     }
   };
 
   const onSubmit = async (data) => {
+    const day = fechaSeleccionada.getDay();
+    if (day === 2 || day === 4) {
+      setErrorFecha('Seleccione una fecha válida. El parque está cerrado los martes y jueves.');
+      return;
+    }
+
     try {
       const edades = Array.from({ length: data.cantidad }, (_, i) => parseInt(data[`edad-${i + 1}`]));
       const pases = Array.from({ length: data.cantidad }, (_, i) => data[`pase-${i + 1}`]);
@@ -73,20 +87,16 @@ function FormCompra() {
         localStorage.setItem('compraEnProceso', 'true');
         window.location.href = res.data.url;
       } else {
-        // Pago en efectivo
-        const fechaFormateada = new Date(res.data.fecha).toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        });
+        // Usar res.data.fecha directamente ya que ya está formateada
         setModalData({
           tipo: 'efectivo',
           detalles: {
             nombre: usuario.nombre,
-            fecha: fechaFormateada,
+            fecha: res.data.fecha, // No intentar convertir a Date
             cantidad: res.data.cantidad,
             pases,
             compraId: res.data.compraId,
+            montoTotal: res.data.montoTotal,
           },
         });
       }
@@ -101,11 +111,10 @@ function FormCompra() {
 
   return (
     <div className="compra w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-6">
-      <h1 className="text-2xl font-bold mb-6 text-center">Comprar Entradas</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center text-green-600">Comprar Entradas</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Columna 1: Fecha y Calendario */}
         <div>
-          <label className="block font-semibold mb-2">Fecha de visita:</label>
+          <label className="block font-semibold mb-2 text-black">Fecha de visita:</label>
           <Calendar
             onChange={handleFechaChange}
             value={fechaSeleccionada}
@@ -119,12 +128,12 @@ function FormCompra() {
           <p className="text-sm text-gray-600 mt-2">
             El parque está cerrado los días martes y jueves. No puedes comprar entradas para esos días.
           </p>
+          {errorFecha && <p className="text-red-600 text-sm mt-2">{errorFecha}</p>}
         </div>
 
-        {/* Columna 2: Formulario */}
         <div className="space-y-4">
           <div>
-            <label className="font-semibold block mb-1">Cantidad de entradas:</label>
+            <label className="font-semibold block mb-1 text-black">Cantidad de entradas:</label>
             <input
               type="number"
               min="1"
@@ -155,7 +164,7 @@ function FormCompra() {
           {Array.from({ length: cantidad }).map((_, i) => (
             <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block font-semibold mb-1">Edad del visitante {i + 1}:</label>
+                <label className="block font-semibold mb-1 text-black">Edad del visitante {i + 1}:</label>
                 <input
                   type="number"
                   min="0"
@@ -173,13 +182,13 @@ function FormCompra() {
               </div>
 
               <div>
-                <label className="block font-semibold mb-1">Tipo de pase:</label>
+                <label className="block font-semibold mb-1 text-black">Tipo de pase:</label>
                 <select
                   {...register(`pase-${i + 1}`, { required: 'El pase es obligatorio' })}
                   className="w-full border rounded px-3 py-2"
                 >
-                  <option value="regular">Regular</option>
-                  <option value="vip">VIP</option>
+                  <option value="regular">Regular ($1000)</option>
+                  <option value="vip">VIP ($1500)</option>
                 </select>
                 {errors[`pase-${i + 1}`] && (
                   <p className="text-red-600 text-sm">{errors[`pase-${i + 1}`].message}</p>
@@ -188,8 +197,16 @@ function FormCompra() {
             </div>
           ))}
 
+          {cantidad > 0 && (
+            <div className="text-right">
+              <p className="text-lg font-semibold text-green-600">
+                Monto Total: ${montoTotal}
+              </p>
+            </div>
+          )}
+
           <div>
-            <label className="block font-semibold mb-1">Forma de pago:</label>
+            <label className="block font-semibold mb-1 text-black">Forma de pago:</label>
             <select
               {...register('formaPago', { required: 'Seleccione forma de pago' })}
               className="w-full border rounded px-3 py-2"
@@ -203,14 +220,16 @@ function FormCompra() {
 
           <button
             type="submit"
-            className="boton1 w-full bg-blue-600 text-white font-semibold py-2 rounded"
+            disabled={errorFecha}
+            className={`boton1 w-full text-white font-semibold py-2 rounded transition ${
+              errorFecha ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
             Comprar
           </button>
         </div>
       </form>
 
-      {/* Renderizar el modal */}
       <ModalCompra modalData={modalData} onClose={() => setModalData(null)} />
     </div>
   );

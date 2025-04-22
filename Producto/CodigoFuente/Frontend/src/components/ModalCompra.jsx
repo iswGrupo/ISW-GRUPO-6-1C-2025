@@ -4,12 +4,11 @@ function ModalCompra({ modalData, onClose }) {
   if (!modalData) return null;
 
   const { tipo, detalles } = modalData;
-  const { nombre, fecha, cantidad, pases, compraId } = detalles;
+  const { nombre, fecha, cantidad, pases, compraId, montoTotal } = detalles;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="font-sans max-w-md w-full mx-4 bg-white border border-green-200 rounded-lg overflow-hidden">
-        {/* Encabezado */}
         <div className="bg-green-100 p-5 text-center">
           <h1 className="text-green-600 text-2xl font-bold">EcoHarmonyPark</h1>
           <p className="text-black">
@@ -17,7 +16,6 @@ function ModalCompra({ modalData, onClose }) {
           </p>
         </div>
 
-        {/* Cuerpo */}
         <div className="p-5 bg-white">
           <h2 className="text-green-600 text-xl font-bold mb-3">
             {tipo === 'efectivo' ? 'Tu reserva ha sido registrada' : 'Confirmación de Compra'}
@@ -45,6 +43,10 @@ function ModalCompra({ modalData, onClose }) {
                 <td className="p-2 font-bold text-black">Tipo de Pases:</td>
                 <td className="p-2 text-black">{pases.join(', ')}</td>
               </tr>
+              <tr>
+                <td className="p-2 font-bold text-black">Monto Total:</td>
+                <td className="p-2 text-black">${montoTotal}</td>
+              </tr>
             </tbody>
           </table>
           {tipo === 'tarjeta' && (
@@ -52,7 +54,6 @@ function ModalCompra({ modalData, onClose }) {
           )}
         </div>
 
-        {/* Pie */}
         <div className="bg-green-100 p-4 text-center">
           <p className="text-black text-sm">
             {tipo === 'efectivo'
@@ -62,7 +63,6 @@ function ModalCompra({ modalData, onClose }) {
           <p className="text-black text-xs">Consultas: iswgrupo@gmail.com</p>
         </div>
 
-        {/* Botón Cerrar */}
         <div className="p-4">
           <button
             onClick={onClose}

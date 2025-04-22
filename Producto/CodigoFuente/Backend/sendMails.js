@@ -3,7 +3,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 
 async function enviarCorreoGmail(destinatario, asunto, datosCompra, formaPago) {
-  const { nombre, fecha, cantidad, pases, compraId } = datosCompra;
+  const { nombre, fecha, cantidad, pases, compraId, montoTotal } = datosCompra;
 
   let transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -30,7 +30,6 @@ async function enviarCorreoGmail(destinatario, asunto, datosCompra, formaPago) {
       console.error('Error generando el QR:', err);
     }
 
-    // Correo para pago con tarjeta (confirmado)
     html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #E6F0E6; border-radius: 10px; overflow: hidden;">
         <div style="background-color: #E6F0E6; padding: 20px; text-align: center;">
@@ -45,6 +44,7 @@ async function enviarCorreoGmail(destinatario, asunto, datosCompra, formaPago) {
             <tr><td style="padding: 10px; font-weight: bold; color: #000000;">Fecha de Visita:</td><td style="padding: 10px; color: #000000;">${fechaFormateada}</td></tr>
             <tr><td style="padding: 10px; font-weight: bold; color: #000000;">Cantidad de Entradas:</td><td style="padding: 10px; color: #000000;">${cantidad}</td></tr>
             <tr><td style="padding: 10px; font-weight: bold; color: #000000;">Tipo de Pases:</td><td style="padding: 10px; color: #000000;">${pases.join(', ')}</td></tr>
+            <tr><td style="padding: 10px; font-weight: bold; color: #000000;">Monto Total:</td><td style="padding: 10px; color: #000000;">$${montoTotal}</td></tr>
           </table>
           <div style="text-align: center; margin-bottom: 20px;">
             <p style="color: #000000; margin-bottom: 10px;">Muestra este código QR al ingresar al parque (adjunto como archivo):</p>
@@ -57,7 +57,6 @@ async function enviarCorreoGmail(destinatario, asunto, datosCompra, formaPago) {
       </div>
     `;
   } else {
-    // Correo para pago en efectivo (reserva pendiente)
     html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #E6F0E6; border-radius: 10px; overflow: hidden;">
         <div style="background-color: #E6F0E6; padding: 20px; text-align: center;">
@@ -72,6 +71,7 @@ async function enviarCorreoGmail(destinatario, asunto, datosCompra, formaPago) {
             <tr><td style="padding: 10px; font-weight: bold; color: #000000;">Fecha de Visita:</td><td style="padding: 10px; color: #000000;">${fechaFormateada}</td></tr>
             <tr><td style="padding: 10px; font-weight: bold; color: #000000;">Cantidad de Entradas:</td><td style="padding: 10px; color: #000000;">${cantidad}</td></tr>
             <tr><td style="padding: 10px; font-weight: bold; color: #000000;">Tipo de Pases:</td><td style="padding: 10px; color: #000000;">${pases.join(', ')}</td></tr>
+            <tr><td style="padding: 10px; font-weight: bold; color: #000000;">Monto Total:</td><td style="padding: 10px; color: #000000;">$${montoTotal}</td></tr>
           </table>
         </div>
         <div style="background-color: #E6F0E6; padding: 15px; text-align: center;">
