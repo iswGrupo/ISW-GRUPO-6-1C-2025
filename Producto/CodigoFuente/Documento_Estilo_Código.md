@@ -67,7 +67,8 @@ Este documento establece ciertas normas y convenciones de buenas prácticas y es
 ## Comentarios 
 - Utilizar comentarios para explicar el propósito y funcionamiento del código cuando sea necesario aclararlo
 
-## Buenas prácticas con JavaScript: 
+## Buenas prácticas con JavaScript:
+- Aplicar principio del buen diseño DRY (Don't Repeat Yourself), no "copiar y pegar" código
 - Usar const por sobre let siempre que se pueda. 
 	○ const para valores constantes. 
 	○ let para variables que pueden cambiar. 
@@ -86,4 +87,4 @@ Este documento establece ciertas normas y convenciones de buenas prácticas y es
 ## Buenas prácticas con React 
 - Los componentes deben ser pequeños, reutilizables y cumplir con una sola responsabilidad. Evitar hacer componentes que manejen múltiples tareas. 
 - Utilizar componentes funcionales siempre que sea posible en lugar de Clases aprovechando su simpleza y tendencia.
-- Usar los React hooks como useState, useEffect, useContext, entre otros.
+- Usar los React hooks como useState, useEffect, useContext, entre otros. usuario                                  |
